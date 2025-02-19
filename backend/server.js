@@ -8,12 +8,7 @@ const jwt = require("jsonwebtoken");
 const app = express();
 app.use(express.json());
 const cors = require("cors");
-app.use(cors({
-    origin: "http://localhost:5173",  // Allow requests from your frontend
-    credentials: true,                 // Allow cookies (if needed)
-    methods: ["GET", "POST", "PUT", "DELETE"], // Allow these HTTP methods
-    allowedHeaders: ["Content-Type", "Authorization"] // Allow these headers
-  }));
+app.use(cors());
 
 
 // MongoDB Connection
@@ -64,15 +59,19 @@ app.post("/signup", async (req, res) => {
 
 // Login Route
 app.post("/login", async (req, res) => {
+  console.log(req.body,"req.body");
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
+    console.log(user,"user");
     if (!user || !(await bcrypt.compare(password, user.password))) {
+      console.log("Invalid email or password");
       return res.status(400).json({ error: "Invalid email or password" });
     }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    const token =  jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
+    // console.log(token,"token");
     res.json({ message: "Login successful", token });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
